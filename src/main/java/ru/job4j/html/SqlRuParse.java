@@ -5,48 +5,46 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 
+import static ru.job4j.html.Date.getDate;
+
+/**
+ * Class SqlRuParse. The class is a vacancy parser for the sql.ru site.
+ *
+ * @author Vitaly Yagufarov (for.viy@gmail.com)
+ * @version 1.0
+ * @since 25.05.2020
+ */
 public class SqlRuParse {
-    private final static String[] MONTHS = {"янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"};
 
-    public static Timestamp getDate(String date) {
-        String[] arr = date.split(" ");
-        StringBuilder sb = new StringBuilder();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Calendar calendar = new GregorianCalendar();
-        if (arr[0].equals("сегодня,")) {
-            sb.append(sdf.format(calendar.getTime())).append(" ")
-                    .append(arr[1]).append(":00");
-
-        } else if (arr[0].equals("вчера,")) {
-            calendar.add(Calendar.DAY_OF_YEAR, -1);
-            sb.append(sdf.format(calendar.getTime())).append(" ")
-                    .append(arr[1]).append(":00");
-
-        } else {
-            sb.append("20").append(arr[2], 0, 2).append("-")
-                    .append(convertMonth(arr[1])).append("-")
-                    .append(arr[0]).append(" ")
-                    .append(arr[3]).append(":00");
+    /**
+     * Gets post data.
+     *
+     * @param url the url
+     * @return the post data
+     */
+    public Post getPostData(String url) {
+        Document doc = null;
+        try {
+            doc = Jsoup.connect(url).get();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return Timestamp.valueOf(sb.toString());
+        Element row = doc.select(".msgTable").first();
+        String name = row.select(".messageHeader").first().select("td:matchText").text();
+        String text = row.select(".msgBody").last().text();
+        Timestamp created = getDate(row.select(".msgFooter").text());
+        return new Post(name, text, url, created);
     }
 
-    private static String convertMonth(String month) {
-        int result = 0;
-        for (int i = 0; i < MONTHS.length; i++) {
-            if (MONTHS[i].equals(month)) {
-                result = i + 1;
-                break;
-            }
-        }
-        return Integer.toString(result);
-    }
-
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     * @throws Exception the exception
+     */
     public static void main(String[] args) throws Exception {
         for (int i = 1; i < 6; i++) {
             Document doc = Jsoup.connect("https://www.sql.ru/forum/job-offers/" + i).get();
