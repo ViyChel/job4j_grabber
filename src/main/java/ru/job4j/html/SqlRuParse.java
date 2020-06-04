@@ -8,6 +8,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -19,6 +20,16 @@ import java.util.List;
  */
 public class SqlRuParse implements Parse {
 
+    private List<Post> allPosts = new ArrayList<>();
+
+    public List<Post> getAllPosts() {
+        return allPosts;
+    }
+
+    public void addAllPosts(List<Post> list) {
+        this.allPosts.addAll(list);
+    }
+
     /**
      * Gets posts list.
      *
@@ -28,11 +39,10 @@ public class SqlRuParse implements Parse {
 
     @Override
     public List<Post> list(String link) {
-        List<Post> allPosts = new ArrayList<>();
-        for (int i = 1; i < 6; i++) {
+        List<Post> result = new ArrayList<>();
             Document doc = null;
             try {
-                doc = Jsoup.connect(link + i).get();
+                doc = Jsoup.connect(link).get();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -42,8 +52,7 @@ public class SqlRuParse implements Parse {
                     allPosts.add(detail(element.child(0).attr("href")));
                 }
             }
-        }
-        return allPosts;
+        return result;
     }
 
     /**
@@ -76,13 +85,15 @@ public class SqlRuParse implements Parse {
      */
     public static void main(String[] args) throws Exception {
         SqlRuParse sqlRuParse = new SqlRuParse();
-        List<Post> posts = sqlRuParse.list("https://www.sql.ru/forum/job-offers/");
-        for (Post el : posts) {
+        for (int i = 1; i < 6; i++) {
+            sqlRuParse.list("https://www.sql.ru/forum/job-offers/" + i);
+        }
+        for (Post el : sqlRuParse.getAllPosts()) {
             System.out.println(el.getName());
             System.out.println(el.getText());
             System.out.println(el.getUrl());
             System.out.println(el.getCreated());
         }
-        System.out.println("Number of vacancies : " + posts.size());
+        System.out.println("Number of vacancies : " + sqlRuParse.getAllPosts().size());
     }
 }
