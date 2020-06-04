@@ -13,7 +13,7 @@ import java.util.GregorianCalendar;
  * @since 03.06.2020
  */
 
-public class Date {
+public class DateParse {
     private final static String[] MONTHS = {"янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"};
 
     private static String convertMonth(String month) {
