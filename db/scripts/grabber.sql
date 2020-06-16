@@ -6,5 +6,5 @@ CREATE TABLE post (
 	name varchar (300),
 	text text,
 	link varchar (300) UNIQUE,
-	created timestamp
+	created timestamp without time zone
 );

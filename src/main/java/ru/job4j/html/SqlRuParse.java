@@ -4,11 +4,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -19,6 +20,10 @@ import java.util.List;
  * @since 25.05.2020
  */
 public class SqlRuParse implements Parse {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SqlRuParse.class.getName());
+
+    private Document doc;
 
     private List<Post> allPosts = new ArrayList<>();
 
@@ -40,18 +45,17 @@ public class SqlRuParse implements Parse {
     @Override
     public List<Post> list(String link) {
         List<Post> result = new ArrayList<>();
-            Document doc = null;
-            try {
-                doc = Jsoup.connect(link).get();
-            } catch (IOException e) {
-                e.printStackTrace();
+        try {
+            this.doc = Jsoup.connect(link).get();
+        } catch (IOException e) {
+            LOG.error(e.getMessage(), e);
+        }
+        Elements row = doc.select(".postslisttopic");
+        for (Element element : row) {
+            if (!element.text().startsWith("Важно:") && !element.child(1).hasClass("closedTopic")) {
+                allPosts.add(detail(element.child(0).attr("href")));
             }
-            Elements row = doc.select(".postslisttopic");
-            for (Element element : row) {
-                if (!element.text().startsWith("Важно:") && !element.child(1).hasClass("closedTopic")) {
-                    allPosts.add(detail(element.child(0).attr("href")));
-                }
-            }
+        }
         return result;
     }
 
@@ -64,11 +68,10 @@ public class SqlRuParse implements Parse {
 
     @Override
     public Post detail(String link) {
-        Document doc = null;
         try {
-            doc = Jsoup.connect(link).get();
+            this.doc = Jsoup.connect(link).get();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
         Element row = doc.select(".msgTable").first();
         String name = row.select(".messageHeader").first().select("td:matchText").text();
