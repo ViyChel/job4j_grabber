@@ -25,16 +25,6 @@ public class SqlRuParse implements Parse {
 
     private Document doc;
 
-    private List<Post> allPosts = new ArrayList<>();
-
-    public List<Post> getAllPosts() {
-        return allPosts;
-    }
-
-    public void addAllPosts(List<Post> list) {
-        this.allPosts.addAll(list);
-    }
-
     /**
      * Gets posts list.
      *
@@ -45,15 +35,17 @@ public class SqlRuParse implements Parse {
     @Override
     public List<Post> list(String link) {
         List<Post> result = new ArrayList<>();
-        try {
-            this.doc = Jsoup.connect(link).get();
-        } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
-        }
-        Elements row = doc.select(".postslisttopic");
-        for (Element element : row) {
-            if (!element.text().startsWith("Важно:") && !element.child(1).hasClass("closedTopic")) {
-                allPosts.add(detail(element.child(0).attr("href")));
+        for (int i = 1; i < 6; i++) {
+            try {
+                this.doc = Jsoup.connect(link + i).get();
+            } catch (IOException e) {
+                LOG.error(e.getMessage(), e);
+            }
+            Elements row = doc.select(".postslisttopic");
+            for (Element element : row) {
+                if (!element.text().startsWith("Важно:") && !element.child(1).hasClass("closedTopic")) {
+                    result.add(detail(element.child(0).attr("href")));
+                }
             }
         }
         return result;
@@ -88,15 +80,11 @@ public class SqlRuParse implements Parse {
      */
     public static void main(String[] args) throws Exception {
         SqlRuParse sqlRuParse = new SqlRuParse();
-        for (int i = 1; i < 6; i++) {
-            sqlRuParse.list("https://www.sql.ru/forum/job-offers/" + i);
-        }
-        for (Post el : sqlRuParse.getAllPosts()) {
+        for (Post el : sqlRuParse.list("https://www.sql.ru/forum/job-offers/")) {
             System.out.println(el.getName());
             System.out.println(el.getText());
             System.out.println(el.getUrl());
             System.out.println(el.getCreated());
         }
-        System.out.println("Number of vacancies : " + sqlRuParse.getAllPosts().size());
     }
 }

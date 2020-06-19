@@ -115,10 +115,7 @@ public class PsqlStore implements Store, AutoCloseable {
         cfg.load(in);
         PsqlStore psqlStore = new PsqlStore(cfg);
         SqlRuParse sqlRuParse = new SqlRuParse();
-        for (int i = 1; i < 6; i++) {
-            sqlRuParse.list("https://www.sql.ru/forum/job-offers/" + i);
-        }
-        for (Post post: sqlRuParse.getAllPosts()) {
+        for (Post post: sqlRuParse.list("https://www.sql.ru/forum/job-offers/")) {
             psqlStore.save(post);
         }
         List<Post> list = psqlStore.getAll();
